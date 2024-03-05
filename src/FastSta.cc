@@ -2,4 +2,7 @@
 
 namespace sta {
 
+StaState*
+FastSta::s_sta = nullptr;
+
 }
