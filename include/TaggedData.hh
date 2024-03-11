@@ -9,11 +9,6 @@ typedef long long TaggedJumpOffset;
 
 extern "C" {
 
-struct TaggedVertex {
-  Vertex* v;
-  Tag* tag;
-};
-
 struct OutDelayCalc {
   TimingArc* arc;
   Edge* edge;

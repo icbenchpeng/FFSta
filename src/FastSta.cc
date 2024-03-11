@@ -8,18 +8,25 @@
 #include "sta/PathAnalysisPt.hh"
 #include "sta/Transition.hh"
 #include "sta/Search.hh"
+#include "FastStaConcrete.hh"
+#include "TaggedData.hh"
 
 namespace sta {
 
-StaState*
-FastSta::s_sta = nullptr;
+FastSta*
+FastSta::create(StaState* sta) {
+  return new FastStaConcrete(sta);
+}
 
-FastSta::FastSta(StaState* sta) {
+StaState*
+FastStaConcrete::s_sta = nullptr;
+
+FastStaConcrete::FastStaConcrete(StaState* sta) : FastSta() {
   s_sta = sta;
 }
 
 std::string
-FastSta::CTaggedDataBuilder::toString() {
+FastStaConcrete::CTaggedDataBuilder::toString() {
   std::string res;
   res += "tagged_vertexs count\n";
   res += std::to_string(tagged_vertexs.size());
@@ -79,12 +86,11 @@ FastSta::CTaggedDataBuilder::toString() {
 }
 
 void
-FastSta::update(Vertex* v) {
+FastStaConcrete::update(Vertex* v) {
   ensureStaPointers();
   schedArrival(v);
-  while (!arrival_queue.queue.empty()) {
-    RTaggedData* r_tagged_data = (RTaggedData*) (*(arrival_queue.queue.begin()));
-    arrival_queue.queue.erase(arrival_queue.queue.begin());
+  while (!arrival_queue->empty()) {
+    RTaggedData* r_tagged_data = (RTaggedData*) arrival_queue->get();
     auto min_max = r_tagged_data->tagged.tag->pathAnalysisPt(s_sta)->pathMinMax();
     auto arrival_before = *(r_tagged_data->p_arrival);
     auto arrival_res = min_max->initValue();
