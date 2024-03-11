@@ -4,6 +4,7 @@ project (faststa
 
 set(FASTSTA_SOURCE
   src/FastSta.cc
+  src/TestFramework.cc
   )
 
 add_library(faststa
