@@ -1,6 +1,7 @@
 #ifndef   Laurel_TestFramework_hh_includeded
 #define   Laurel_TestFramework_hh_includeded
 
+#include <cassert>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -16,6 +17,7 @@ class Logger {
   Logger(std::string const& log_filename): destruct(true) {
     stream = new std::ofstream();
     ((std::ofstream*)stream)->open(log_filename.c_str());
+    assert(((std::ofstream*)stream)->is_open());
   }
   virtual ~Logger() {
     if (destruct){
