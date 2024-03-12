@@ -1,1 +1,7 @@
 results
+
+*.log
+*.def
+*.lef
+*.sdc
+*.v

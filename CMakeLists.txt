@@ -6,7 +6,7 @@ set(FASTSTA_SOURCE
   src/FastSta.cc
   src/TestFramework.cc
   src/MakeFastSta.cc
-  
+  src/testFastSta.cc
   src/testUtility.cc
   )
 
