@@ -1,0 +1,12 @@
+[annotation]
+  description = "pdk for smic40"
+
+[[inputs]]
+  name = "lefs"
+  uri = "https://aqua.icbench.com/benchmark/data/653a005681acf2959466d481"
+  action = "include"
+
+[[inputs]]
+  name = "libs"
+  uri = "https://aqua.icbench.com/benchmark/data/653a005881acf2959466d48e"
+  action = "include"

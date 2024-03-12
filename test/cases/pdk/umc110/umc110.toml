@@ -1,0 +1,16 @@
+[annotation]
+  description = "pdk for umc110"
+
+[[inputs]]
+  name = "lefs"
+  uri = "https://aqua.icbench.com/benchmark/data/64b9ef7cc941393edd0e1ef9"
+  action = "include"
+
+[[inputs]]
+  name = "libs"
+  uri = "https://aqua.icbench.com/benchmark/data/650abe3b033180c5687ced0f"
+  action = "include"
+
+[[inputs]]
+  name = "setRC.tcl"
+  uri = "https://aqua.icbench.com/benchmark/data/64dc86e30bd7aee9663d18ae"

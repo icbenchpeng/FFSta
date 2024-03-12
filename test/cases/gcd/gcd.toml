@@ -1,0 +1,10 @@
+[annotation]
+  description = "pre_cts for gcd"
+
+[[inputs]]
+  name = "place_dp.def"
+  uri = "https://aqua.icbench.com/benchmark/data/64b9ee87c941393edd0e1e7b"
+
+[[inputs]]
+  name = "place_dp.sdc"
+  uri = "https://aqua.icbench.com/benchmark/data/64b9ee87c941393edd0e1e7d"
