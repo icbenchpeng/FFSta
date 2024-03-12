@@ -34,6 +34,12 @@ target_include_directories(faststa
   ../include
 )
 
+target_link_libraries(faststa
+  PUBLIC
+    odb
+    dbSta
+)
+
 messages(
   TARGET faststa
   OUTPUT_DIR ..

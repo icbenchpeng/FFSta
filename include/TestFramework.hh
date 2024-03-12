@@ -11,16 +11,16 @@
 
 namespace sta {
 
-class Logger {
+class TestLogger {
  public:
   // if defined log file path, redirect output to it
-  Logger(): stream(&std::cout), destruct(false) {}
-  Logger(std::string const& log_filename): destruct(true) {
+  TestLogger(): stream(&std::cout), destruct(false) {}
+  TestLogger(std::string const& log_filename): destruct(true) {
     stream = new std::ofstream();
     ((std::ofstream*)stream)->open(log_filename.c_str());
     assert(((std::ofstream*)stream)->is_open());
   }
-  virtual ~Logger() {
+  virtual ~TestLogger() {
     if (destruct){
       ((std::ofstream*)stream)->close();
       delete stream;
@@ -45,7 +45,7 @@ class BaseSystem {
   // typedef utl::Logger Logger;
   struct Impl {
     Impl() : refcount(0) {}
-    Logger*   logger;
+    TestLogger* logger;
     std::atomic<size_t> refcount;
   };
   static Impl* singleton;
@@ -64,8 +64,8 @@ public:
       singleton = nullptr;
     }
   }
-  void setLogger(Logger* logger) { singleton->logger = logger; }
-  Logger* logger()  const { return singleton->logger;  }
+  void setLogger(TestLogger* logger) { singleton->logger = logger; }
+  TestLogger* logger()  const { return singleton->logger;  }
 };
 
 struct TestEnv {
@@ -99,22 +99,22 @@ public:
   }
   virtual Test* findCase(std::string const & case_name) { return this; }
   virtual int flow() {
-	  std::string fn = path();
+	std::string fn = path();
     int failed = 0;
-	  {
-	    Logger logger(fn + ".log");
-	    Logger* oldlogger = BaseSystem::logger();
+	{
+      TestLogger logger(fn + ".log");
+      TestLogger* oldlogger = BaseSystem::logger();
       setLogger(&logger);
-	    failed = run();
+	  failed = run();
       if (!failed) failed = diff(fn);
 	    setLogger(oldlogger);
-	  }
-	  // needs elaborate failure information
+	}
+	// needs elaborate failure information
     if (failed) {
       logger()->warn("%s\n", fn.c_str());
       return 1;
     }
-	  return 0;
+	return 0;
   }
   std::string name;
   Test* parent;
@@ -175,7 +175,7 @@ public:
 class TestFramework : TestGroup {
 public:
    // n is the name of the path
-  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new Logger()); }
+  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new TestLogger()); }
   virtual ~TestFramework() { delete logger(); setLogger(nullptr); } ;
   using TestGroup::add;
   Test* findCase(std::string const & case_name) {
