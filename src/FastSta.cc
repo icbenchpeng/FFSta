@@ -15,7 +15,10 @@ namespace sta {
 
 FastSta*
 FastSta::create(StaState* sta) {
-  return new FastStaConcrete(sta);
+  if (FastStaConcrete::s_sta == nullptr)
+    return new FastStaConcrete(sta);
+  else
+    return nullptr;
 }
 
 StaState*
@@ -23,6 +26,7 @@ FastStaConcrete::s_sta = nullptr;
 
 FastStaConcrete::FastStaConcrete(StaState* sta) : FastSta() {
   s_sta = sta;
+  arrival_queue = new FastSchedQueue;
 }
 
 std::string
@@ -31,19 +35,10 @@ FastStaConcrete::CTaggedDataBuilder::toString() {
   res += "tagged_vertexs count\n";
   res += std::to_string(tagged_vertexs.size());
   res += "\n";
-  struct AnalysisVertex {
-    Vertex* v;
-    RiseFall* rf;
-    PathAnalysisPt* path_ap;
-  };
-//   std::map<AnalysisVertex, Arrival> arrivals;
   for (auto&& [_, data] : tagged_vertexs) {
     auto tag_v_from = data.tagged;
-    auto rf = RiseFall::find(tag_v_from.tag->trIndex());
     auto path_ap = tag_v_from.tag->pathAnalysisPt(s_sta);
-    auto from_arrival = Sta::sta()->vertexArrival(tag_v_from.v, rf, path_ap);
     assert(path_ap->corner()->findPathAnalysisPt(path_ap->pathMinMax()) == path_ap);
-    // arrivals[AnalysisVertex{tag_v_from.v, rf, path_ap}] = from_arrival;
   }
   for (auto&& [_, data] : tagged_vertexs) {
     auto tag_v_from = data.tagged;
@@ -73,22 +68,36 @@ FastStaConcrete::CTaggedDataBuilder::toString() {
     for (auto&& tagged_vertex : data.fanouts) {
       res += std::string("name = ") + tagged_vertex.v->name(s_sta->network()) + '\n';
       res += std::string("tag = ") + tagged_vertex.tag->asString(s_sta) + '\n';
-      
       res += '\n';
     }
 
     res += "\n";
   }
   res += "\n\n";
-  decltype(tagged_vertexs) temp;
-  tagged_vertexs.swap(temp);
   return res;
 }
 
 void
 FastStaConcrete::update(Vertex* v) {
+  if (r_tagged_data_form.uninit()) return ;
+  
+  // TODO : need to solve rather if vertex or tag outdated
+  auto tagged_datas = r_tagged_data_form.get(v);
+  for (auto tagged_data : tagged_datas) {
+    schedArrival(tagged_data->tagged);
+    // for (size_t i = 0; i < tagged_data->fanins_count; i++) {
+    //   auto fanin_tagged_data = tagged_data->fanin(i);
+    //   schedArrival(fanin_tagged_data);
+    // }
+  }
+  // compile and update all relative map
+  // sched v relative fanin tagged data
+}
+
+void
+FastStaConcrete::findAllArrivals() {
+  toRuntime();
   ensureStaPointers();
-  schedArrival(v);
   while (!arrival_queue->empty()) {
     RTaggedData* r_tagged_data = (RTaggedData*) arrival_queue->get();
     auto min_max = r_tagged_data->tagged.tag->pathAnalysisPt(s_sta)->pathMinMax();
@@ -100,20 +109,24 @@ FastStaConcrete::update(Vertex* v) {
       auto fanin_arrival = *(fanin_tagged_data->p_arrival);
       auto arc_delay = s_sta->search()->deratedDelay(fanin_tagged_data->tagged.v, delay_calc.arc, delay_calc.edge, delay_calc.to_propagates_clk, delay_calc.path_ap);
       auto arrival = fanin_arrival + arc_delay;
-      if (min_max->compare(arrival, arrival_res)) { arrival_res = arrival; }
+      if (min_max->compare(arrival, arrival_res)) {
+        arrival_res = arrival;
+      }
     }
-    if (!min_max->compare(arrival_res, arrival_before)) {
+    if (min_max->compare(arrival_res, arrival_before)) {
+      std::cout << "arrival pass, vertex name : " << r_tagged_data->tagged.v->name(s_sta->network()) << "  tag : " << r_tagged_data->tagged.tag->asString(s_sta) << '\n';
+      std::cout << "arrival before : " << (arrival_before * 1e9) << " "
+                << "arrival res : " << (arrival_res * 1e9) << '\n';
       for (size_t i = 0; i < r_tagged_data->fanouts_count; i++) {
         auto fanout_tagged_data = r_tagged_data->fanout(i);
         schedArrival(fanout_tagged_data);
       }
+      *(r_tagged_data->p_arrival) = arrival_res;
     } else {
       std::cout << "arrival not pass, vertex name : " << r_tagged_data->tagged.v->name(s_sta->network()) << "  tag : " << r_tagged_data->tagged.tag->asString(s_sta) << '\n';
       std::cout << "arrival before : " << (arrival_before * 1e9) << " "
                 << "arrival res : " << (arrival_res * 1e9) << '\n';
     }
   }
-  // compile and update all relative map
-  // sched v relative fanin tagged data
 }
 }

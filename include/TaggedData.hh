@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FastSta.hh"
 #include "sta/Graph.hh"
 
 
