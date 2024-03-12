@@ -7,7 +7,7 @@
 #include <unordered_set>
 
 #include "TaggedData.hh"
-#include "FastSchedQueue.hh"
+// #include "FastSchedQueue.hh"
 #include "sta/Fuzzy.hh"
 #include "sta/Graph.hh"
 #include "sta/GraphClass.hh"
@@ -18,25 +18,35 @@
 
 namespace sta {
 
-class FastSchedQueue;
-/*
-{
+class FastSchedQueue {
   typedef std::set<TaggedData*, TaggedDataCmp> Queue;
  public:
   Queue queue;
 
  public:
+  bool empty() {
+    return queue.empty();
+  }
+  
+  TaggedData* get() {
+    TaggedData* res = *queue.begin();
+    queue.erase(queue.begin());
+    return res;
+  }
+
   void sched(TaggedData* d) {
     assert(d);
     queue.insert(d);
   }
 };
-*/
 
 class FastStaConcrete : public FastSta {
  public:
   FastStaConcrete(StaState* sta);
-  void update(Vertex* v);
+
+  // TODO : also need remove
+  void update(Vertex* v) override;
+  void findAllArrivals();
   static StaState* s_sta;
 
   struct RTaggedData;
@@ -73,6 +83,14 @@ class FastStaConcrete : public FastSta {
       tagged = tagged_vertex;
     }
     CTaggedData() = default;
+    CTaggedData(RTaggedData& r_tagged_data) : CTaggedData(r_tagged_data.tagged) {
+      for (size_t i = 0; i < r_tagged_data.fanins_count; i++) {
+        fanins[(CTaggedVertex)r_tagged_data.fanin(i)->tagged] = (COutDelayCalc)r_tagged_data.faninEnv(i)->delayCalc;
+      }
+      for (size_t i = 0; i < r_tagged_data.fanouts_count; i++) {
+        fanouts.insert((CTaggedVertex)r_tagged_data.fanout(i)->tagged);
+      }
+    }
     std::map<CTaggedVertex, COutDelayCalc> fanins;
     std::set<CTaggedVertex> fanouts;
 
@@ -93,9 +111,9 @@ class FastStaConcrete : public FastSta {
   }
 
   void compile() {}
-  void compileTestBuilder() {
-    // toRuntime();
+  void compileTestBuilder() override {
     std::cout << c_tagged_data_builder.toString() << std::endl;
+    toRuntime();
   }
 
  protected:
@@ -112,8 +130,19 @@ class FastStaConcrete : public FastSta {
     //   to_data.fanins.insert(from);
     }
 
-    RTaggedDataForm buildOutRTaggedData() {
-      RTaggedDataForm r_tagged_data_form;
+    void buildOutRTaggedData(RTaggedDataForm& r_tagged_data_form) {
+      if (tagged_vertexs.empty()) return ;
+      
+      // If there are any data in tagged_vertexs, need to rebuild. TODO : incremental build
+      for (auto&& [tagged_vertex, tagged_data] : r_tagged_data_form.address) {
+        auto&& iter = tagged_vertexs.find(tagged_vertex);
+        if (iter == tagged_vertexs.end()) {
+          tagged_vertexs.emplace(tagged_vertex, *tagged_data);
+        }
+      }
+
+      r_tagged_data_form.clear();
+
       size_t sum_size = 0;
       for (auto&& [tagged_vertex, tagged_data] : tagged_vertexs) {
         sum_size += tagged_data.byteSize();
@@ -145,7 +174,6 @@ class FastStaConcrete : public FastSta {
         }
       }
       tagged_vertexs.clear();
-      return r_tagged_data_form;
     }
 
     std::string toString();
@@ -155,7 +183,7 @@ class FastStaConcrete : public FastSta {
 
  public:  // runtime
   void toRuntime() {
-    tagged_data_form = c_tagged_data_builder.buildOutRTaggedData();
+    c_tagged_data_builder.buildOutRTaggedData(r_tagged_data_form);
   }
 
   struct RTaggedData : public TaggedData {
@@ -170,8 +198,6 @@ class FastStaConcrete : public FastSta {
       pos += siz;
       return (void*)&data;
     }
-
-    size_t numFanouts() const { return fanouts_count; }
 
     RTaggedData* fanout(size_t i) { return (RTaggedData*) (((std::int8_t*) this) + fanoutOffset(i)); }
     RTaggedData* fanin(size_t i) { return (RTaggedData*) (((std::int8_t*) this) + faninOffset(i)); }
@@ -191,20 +217,24 @@ class FastStaConcrete : public FastSta {
   void schedRequired(RTaggedData*);
 
   void schedArrival(Vertex *v) {
-    auto r_tagged_datas = tagged_data_form.get(v);
+    auto r_tagged_datas = r_tagged_data_form.get(v);
     for (auto data : r_tagged_datas) {
       schedArrival(data);
     }
   }
   void schedArrival(CTaggedVertex v) {
-    schedArrival(tagged_data_form.get(v));
+    schedArrival(r_tagged_data_form.get(v));
   }
   void ensureStaPointers() {
-    tagged_data_form.stitchStaEnv();
+    r_tagged_data_form.stitchStaEnv();
   }
 
  protected:
   struct RTaggedDataForm {
+    bool uninit() {
+      return start == nullptr;
+    }
+
     RTaggedData* get(CTaggedVertex tagged_vertex) const {
       return address.at(tagged_vertex);
     }
@@ -219,27 +249,40 @@ class FastStaConcrete : public FastSta {
     }
 
     void stitchStaEnv() {
+      if (haveStiched) return ;
       for (auto&& [c_tagged_vertex, r_tagged_data] : address) {
         Arrival* arrivals = s_sta->graph()->arrivals(c_tagged_vertex.v);
         Arrival* requireds = s_sta->graph()->requireds(c_tagged_vertex.v);
         int arrival_index = 0;
         bool exists = false;
         s_sta->search()->tagGroup(c_tagged_vertex.v)->arrivalIndex(c_tagged_vertex.tag, arrival_index, exists);
-        assert(!exists);
+        assert(exists);
         r_tagged_data->p_arrival = arrivals + arrival_index;
         r_tagged_data->p_require = requireds + arrival_index;
       }
+      haveStiched = true;
     }
+
    protected:
     std::unordered_map<CTaggedVertex, RTaggedData*, CTaggedVertexHash> address;
-    RTaggedData* start;
+    RTaggedData* start=nullptr;
     size_t siz;
+    bool haveStiched=false;
 
     void insert(CTaggedVertex tagged_vertex, RTaggedData* p) {
       address[tagged_vertex] = p;
     }
+
+    void clear() {
+      address.clear();
+      free ((void *)start);
+      start = nullptr;
+      siz = 0;
+      haveStiched = false;
+    }
+
     friend CTaggedDataBuilder;
-  } tagged_data_form;
+  } r_tagged_data_form;
 };
 
 }  // end namespace sta
