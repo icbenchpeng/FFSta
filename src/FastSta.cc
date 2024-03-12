@@ -15,7 +15,10 @@ namespace sta {
 
 FastSta*
 FastSta::create(StaState* sta) {
-  return new FastStaConcrete(sta);
+  if (FastStaConcrete::s_sta == nullptr)
+    return new FastStaConcrete(sta);
+  else
+    return nullptr;
 }
 
 StaState*
@@ -23,6 +26,7 @@ FastStaConcrete::s_sta = nullptr;
 
 FastStaConcrete::FastStaConcrete(StaState* sta) : FastSta() {
   s_sta = sta;
+  arrival_queue = new FastSchedQueue;
 }
 
 std::string
@@ -92,6 +96,7 @@ FastStaConcrete::update(Vertex* v) {
 
 void
 FastStaConcrete::findAllArrivals() {
+  toRuntime();
   ensureStaPointers();
   while (!arrival_queue->empty()) {
     RTaggedData* r_tagged_data = (RTaggedData*) arrival_queue->get();
@@ -108,7 +113,7 @@ FastStaConcrete::findAllArrivals() {
         arrival_res = arrival;
       }
     }
-    if (!min_max->compare(arrival_res, arrival_before) || sta::fuzzyEqual(arrival_res, arrival_before)) {
+    if (min_max->compare(arrival_res, arrival_before)) {
       std::cout << "arrival pass, vertex name : " << r_tagged_data->tagged.v->name(s_sta->network()) << "  tag : " << r_tagged_data->tagged.tag->asString(s_sta) << '\n';
       std::cout << "arrival before : " << (arrival_before * 1e9) << " "
                 << "arrival res : " << (arrival_res * 1e9) << '\n';
@@ -116,13 +121,12 @@ FastStaConcrete::findAllArrivals() {
         auto fanout_tagged_data = r_tagged_data->fanout(i);
         schedArrival(fanout_tagged_data);
       }
+      *(r_tagged_data->p_arrival) = arrival_res;
     } else {
       std::cout << "arrival not pass, vertex name : " << r_tagged_data->tagged.v->name(s_sta->network()) << "  tag : " << r_tagged_data->tagged.tag->asString(s_sta) << '\n';
       std::cout << "arrival before : " << (arrival_before * 1e9) << " "
                 << "arrival res : " << (arrival_res * 1e9) << '\n';
     }
   }
-  // compile and update all relative map
-  // sched v relative fanin tagged data
 }
 }

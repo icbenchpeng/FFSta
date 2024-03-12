@@ -34,7 +34,7 @@ public:
   virtual void compilePath(const TaggedVertex& from, const TaggedVertex& to) = 0;
   virtual void update(Vertex* v) = 0;
   virtual void compileTestBuilder() = 0;
-  
+  virtual void findAllArrivals() = 0;
   static FastSta* create(StaState* sta);
 };
 

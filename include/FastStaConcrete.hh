@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 
 #include "TaggedData.hh"
@@ -35,6 +36,7 @@ class FastSchedQueue {
   }
 
   void sched(TaggedData* d) {
+    assert(d->tagged.v);
     assert(d);
     queue.insert(d);
   }
@@ -46,7 +48,7 @@ class FastStaConcrete : public FastSta {
 
   // TODO : also need remove
   void update(Vertex* v) override;
-  void findAllArrivals();
+  void findAllArrivals() override;
   static StaState* s_sta;
 
   struct RTaggedData;
@@ -284,5 +286,7 @@ class FastStaConcrete : public FastSta {
     friend CTaggedDataBuilder;
   } r_tagged_data_form;
 };
+
+static_assert(std::is_standard_layout_v<TaggedData>, "TaggedData must be standard layout");
 
 }  // end namespace sta
