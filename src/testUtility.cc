@@ -20,7 +20,12 @@ public:
     bm[0] = true;
     logger()->warn("%b\n", (bool)bm[0]);
     printAllSet(bm);
+    bm[0] = false;
+    bm[32] = true;
     bm[45] = true;
+    bm[46] = true;
+    bm[47] = true;
+    bm[63] = true;
     printAllSet(bm);
 	return 0;
   }
