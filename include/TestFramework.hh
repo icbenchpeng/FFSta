@@ -1,5 +1,5 @@
-#ifndef   Laurel_TestFramework_hh_includeded
-#define   Laurel_TestFramework_hh_includeded
+#ifndef   FastSta_TestFramework_hh_includeded
+#define   FastSta_TestFramework_hh_includeded
 
 #include <cassert>
 #include <string>
@@ -186,4 +186,4 @@ void fsta_test(TestFramework* tf);
 
 } // end namespace sta-test
 
-#endif /*Laurel_TestFramework_hh_includeded*/
+#endif /*FastSta_TestFramework_hh_includeded*/
