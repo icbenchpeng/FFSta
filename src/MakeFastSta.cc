@@ -1,9 +1,10 @@
 #include "tcl.h"
 #include "../MakeFastSta.h"
 #include "ord/OpenRoad.hh"
+#include "sta/StaMain.hh"
 
 namespace sta {
-extern const char* FastSta_tcl_inits[];
+extern const char* faststa_tcl_inits[];
 }
 
 extern "C" {
@@ -13,7 +14,9 @@ extern int Faststa_Init(Tcl_Interp* interp);
 namespace ord {
 
 void initFastSta(OpenRoad* ord) {
-  Faststa_Init(ord->tclInterp());
+  Tcl_Interp* interp = ord->tclInterp();
+  Faststa_Init(interp);
+  sta::evalTclInit(interp, sta::faststa_tcl_inits);
 }
 
 } // end namespace ord

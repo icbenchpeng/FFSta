@@ -1,1 +1,1 @@
-puts OK
+test_fsta utility/bitmap
