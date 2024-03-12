@@ -2,10 +2,11 @@
 
 namespace sta {
 
-class bitmap : public Test {
+class bitmap_ut : public Test {
 public:
-  bitmap() : Test(__FUNCTION__) {}
+  bitmap_ut() : Test(__FUNCTION__) {}
   int run() {
+	logger()->warn("OK");
 	return 0;
   }
 };
@@ -13,7 +14,7 @@ public:
 Test*
 fsta_utility_test() {
   TestGroup* group = new TestGroup("utility");
-  group->add(new bitmap);
+  group->add(new bitmap_ut);
   return group;
 }
 

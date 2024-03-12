@@ -1,1 +1,1 @@
-test_fsta utility/bitmap
+test_fsta utility/bitmap_ut
