@@ -3,6 +3,9 @@
 
 namespace sta {
 
+BaseSystem::Impl*
+BaseSystem::singleton = nullptr;
+
 bool compareFiles(const std::string& p1, const std::string& p2)
 {
   std::ifstream f1(p1, std::ifstream::binary | std::ifstream::ate);
@@ -27,6 +30,13 @@ int Test::diff(std::string const & fn)
   std::string golden = fn + ".ok";
   std::string revised = fn + ".log";
   return compareFiles(golden, revised) ? 0 : 1;
+}
+
+extern Test* fsta_utility_test();
+
+void
+fsta_test(TestFramework* tf) {
+  tf->add(fsta_utility_test());
 }
 
 } // end namespace sta

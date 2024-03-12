@@ -5,9 +5,19 @@ project (faststa
 set(FASTSTA_SOURCE
   src/FastSta.cc
   src/TestFramework.cc
+  src/MakeFastSta.cc
+  
+  src/testUtility.cc
   )
 
-add_library(faststa
+swig_lib(NAME faststa
+NAMESPACE sta
+I_FILE src/FastSta.i
+SCRIPTS src/FastSta.tcl
+)
+
+target_sources(faststa
+  PRIVATE
   ${FASTSTA_SOURCE}
   )
 
@@ -22,4 +32,9 @@ target_include_directories(faststa
   PUBLIC
   include
   ../include
+)
+
+messages(
+  TARGET faststa
+  OUTPUT_DIR ..
 )
