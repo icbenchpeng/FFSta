@@ -1,12 +1,27 @@
 #include "TestFramework.hh"
+#include "BitMap.hh"
 
 namespace sta {
 
 class bitmap_ut : public Test {
 public:
   bitmap_ut() : Test(__FUNCTION__) {}
+  void printAllSet(BitMap const & bm) const {
+	logger()->warn("index:\n");
+	size_t i = BitMap::invalidIndex;
+    do {
+     i = bm.next(i);
+     logger()->warn("%d\n", (int)i);
+    } while(i != BitMap::invalidIndex);
+  }
   int run() {
-	logger()->warn("OK");
+    BitMap bm(100);
+    logger()->warn("%b\n", (bool)bm[0]);
+    bm[0] = true;
+    logger()->warn("%b\n", (bool)bm[0]);
+    printAllSet(bm);
+    bm[45] = true;
+    printAllSet(bm);
 	return 0;
   }
 };

@@ -17,6 +17,9 @@ class BitMap {
   inline size_t bitIndex(size_t idx) const { return idx % wordBits; }
 
  public:
+  enum {
+	invalidIndex = (size_t)-1,
+  };
   BitMap(size_t size) : words(nullptr), count(size), allocSz(allocSize(count)) {
     assert(size != 0);
     words = new Word[allocSz];
@@ -47,23 +50,25 @@ class BitMap {
     assert(index < count);
     return Bit(words + wordIndex(index), bitIndex(index));
   }
-  size_t next(size_t cur = (Word) -1) const {
+  size_t next(size_t cur = invalidIndex) const {
     ++cur;
-    if (cur >= count) return (Word) -1;
+    if (cur >= count) return invalidIndex;
     unsigned cbit = bitIndex(cur);
     Word* start = words + wordIndex(cur);
-    Word mask = (Word) -1 << cbit;
+    Word mask = (Word)-1 << cbit;
     Word bits = *start & mask;
     if (!bits) {
       cbit = 0;
       start++;
       while (!*start) {
-        if (start >= (words + allocSz)) return (Word) -1;
+        if (start >= (words + allocSz)) return invalidIndex;
         ++start;
       }
       bits = *start;
     }
-    return wordBits * (start - words) + firstIndexOf(bits);
+    size_t ret = wordBits * (start - words) + firstIndexOf(bits);
+    if (ret < count) return ret;
+    return invalidIndex;
   }
 
  private:
