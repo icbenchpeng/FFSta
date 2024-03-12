@@ -1,6 +1,7 @@
 #ifndef   FastSta_TestFramework_hh_includeded
 #define   FastSta_TestFramework_hh_includeded
 
+#include "tcl.h"
 #include <cassert>
 #include <string>
 #include <vector>
@@ -67,7 +68,24 @@ public:
   Logger* logger()  const { return singleton->logger;  }
 };
 
-class Test : public BaseSystem {
+struct TestEnv {
+  template <typename T>
+  static T* getPtr(std::string const& tclVar) {
+	const char* tcl_obj;
+	tcl_obj = Tcl_GetVar(tcl_interp, tclVar.c_str(), TCL_GLOBAL_ONLY);
+	void* p;
+	convertPtrFromString(tcl_obj, &p);
+	return reinterpret_cast<T*>(p);
+  }
+  static void setTclInterp(Tcl_Interp* i) { tcl_interp = i; }
+private:
+  static Tcl_Interp* tcl_interp;
+
+  static const char* unpack_data(const char* c, void* ptr, size_t sz);
+  static void convertPtrFromString(const char* c, void** ptr);
+};
+
+class Test : public BaseSystem, public TestEnv {
 public:
   Test(std::string const & n) : name(n), parent(nullptr) {}
   virtual ~Test() = default;

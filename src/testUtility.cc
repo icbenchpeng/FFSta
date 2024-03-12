@@ -31,10 +31,19 @@ public:
   }
 };
 
+class network_ptr_access : public Test {
+public:
+  network_ptr_access() : Test(__FUNCTION__) {}
+  int run() {
+    return 0;
+  }
+};
+
 Test*
 fsta_utility_test() {
   TestGroup* group = new TestGroup("utility");
   group->add(new bitmap_ut);
+  group->add(new network_ptr_access);
   return group;
 }
 

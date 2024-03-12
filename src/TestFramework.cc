@@ -1,7 +1,42 @@
-#include "TestFramework.hh"
 #include <fstream>
+#include "TestFramework.hh"
 
 namespace sta {
+
+Tcl_Interp*
+TestEnv::tcl_interp = nullptr;
+
+const char*
+TestEnv::unpack_data(const char* c, void* ptr, size_t sz) {
+unsigned char* u = (unsigned char*) ptr;
+  const unsigned char* eu = u + sz;
+  for (; u != eu; ++u) {
+    char d = *(c++);
+    unsigned char uu;
+    if ((d >= '0') && (d <= '9'))
+	  uu = (unsigned char) ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+	  uu = (unsigned char) ((d - ('a' - 10)) << 4);
+    else
+	  return (char*) 0;
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+	  uu |= (unsigned char) (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+	  uu |= (unsigned char) (d - ('a' - 10));
+    else
+	  return (char*) 0;
+    *u = uu;
+  }
+  return c;
+}
+
+void
+TestEnv::convertPtrFromString(const char* c, void** ptr) {
+  assert(*c == '_');
+  c++;
+  c = unpack_data(c, ptr, sizeof(void*));
+}
 
 BaseSystem::Impl*
 BaseSystem::singleton = nullptr;
@@ -31,6 +66,8 @@ int Test::diff(std::string const & fn)
   std::string revised = fn + ".log";
   return compareFiles(golden, revised) ? 0 : 1;
 }
+
+
 
 extern Test* fsta_utility_test();
 extern Test* fsta_faststa_test();
