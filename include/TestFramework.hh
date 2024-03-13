@@ -8,44 +8,49 @@
 #include <iostream>
 #include <fstream>
 #include <atomic>
+#include "sta/Sta.hh"
+#include "sta/Search.hh"
+#include "sta/Network.hh"
+#include "ord/OpenRoad.hh"
+#include "db_sta/dbSta.hh"
 
 namespace sta {
 
-class TestLogger {
- public:
-  // if defined log file path, redirect output to it
-  TestLogger(): stream(&std::cout), destruct(false) {}
-  TestLogger(std::string const& log_filename): destruct(true) {
-    stream = new std::ofstream();
-    ((std::ofstream*)stream)->open(log_filename.c_str());
-    assert(((std::ofstream*)stream)->is_open());
-  }
-  virtual ~TestLogger() {
-    if (destruct){
-      ((std::ofstream*)stream)->close();
-      delete stream;
-    }
-  }
-
-  template<typename ...Args>
-  void warn(std::string const& fmt, Args... args) {
-	size_t sz = 1 + snprintf(nullptr, 0, fmt.c_str(), args...);
-    char buffer[sz];
-    snprintf(buffer, sz, fmt.c_str(), args...);
-    log(buffer);
-  }
-  void log(std::string const & s) { *stream << s << std::flush; }
-  operator std::ostream& () { return *stream; }
- protected:
-  std::ostream* stream;
-  bool destruct: 1;
-};
-
 class BaseSystem {
+protected:
   // typedef utl::Logger Logger;
+  class Logger {
+  public:
+    // if defined log file path, redirect output to it
+    Logger(): stream(&std::cout), destruct(false) {}
+    Logger(std::string const& log_filename): destruct(true) {
+	  stream = new std::ofstream();
+      ((std::ofstream*)stream)->open(log_filename.c_str());
+      assert(((std::ofstream*)stream)->is_open());
+    }
+    virtual ~Logger() {
+	  if (destruct){
+	    ((std::ofstream*)stream)->close();
+	    delete stream;
+	  }
+    }
+
+    template<typename ...Args>
+    void warn(std::string const& fmt, Args... args) {
+	  size_t sz = 1 + snprintf(nullptr, 0, fmt.c_str(), args...);
+	  char buffer[sz];
+	  snprintf(buffer, sz, fmt.c_str(), args...);
+	  log(buffer);
+    }
+    void log(std::string const & s) { *stream << s << std::flush; }
+    operator std::ostream& () { return *stream; }
+  protected:
+    std::ostream* stream;
+    bool destruct: 1;
+  };
   struct Impl {
     Impl() : refcount(0) {}
-    TestLogger* logger;
+    Logger* logger;
     std::atomic<size_t> refcount;
   };
   static Impl* singleton;
@@ -64,8 +69,8 @@ public:
       singleton = nullptr;
     }
   }
-  void setLogger(TestLogger* logger) { singleton->logger = logger; }
-  TestLogger* logger()  const { return singleton->logger;  }
+  void setLogger(Logger* logger) { singleton->logger = logger; }
+  Logger* logger()  const { return singleton->logger;  }
 };
 
 struct TestEnv {
@@ -78,6 +83,9 @@ struct TestEnv {
 	return reinterpret_cast<T*>(p);
   }
   static void setTclInterp(Tcl_Interp* i) { tcl_interp = i; }
+  static dbSta*   dbsta() { return ord::OpenRoad::openRoad()->getSta(); }
+  static Graph*   graph() { return dbsta()->graph(); }
+  static Network* network() { return dbsta()->network(); }
 private:
   static Tcl_Interp* tcl_interp;
 
@@ -102,8 +110,8 @@ public:
 	std::string fn = path();
     int failed = 0;
 	{
-      TestLogger logger(fn + ".log");
-      TestLogger* oldlogger = BaseSystem::logger();
+      Logger logger(fn + ".log");
+      Logger* oldlogger = BaseSystem::logger();
       setLogger(&logger);
 	  failed = run();
       if (!failed) failed = diff(fn);
@@ -175,7 +183,7 @@ public:
 class TestFramework : TestGroup {
 public:
    // n is the name of the path
-  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new TestLogger()); }
+  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new Logger()); }
   virtual ~TestFramework() { delete logger(); setLogger(nullptr); } ;
   using TestGroup::add;
   Test* findCase(std::string const & case_name) {

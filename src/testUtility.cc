@@ -1,10 +1,5 @@
 #include "TestFramework.hh"
 #include "BitMap.hh"
-#include "sta/Sta.hh"
-#include "sta/Search.hh"
-#include "sta/Network.hh"
-#include "ord/OpenRoad.hh"
-#include "db_sta/dbSta.hh"
 
 namespace sta {
 
@@ -41,10 +36,7 @@ public:
   network_ptr_access() : Test(__FUNCTION__) {}
   int run() {
 	auto p = getPtr<sta::Pin>("pin");
-	auto dbSta = ord::OpenRoad::openRoad()->getSta();
-	auto graph = dbSta->graph();
-	auto network = dbSta->network();
-	logger()->warn("%s\n", network->name(p));
+	logger()->warn("%s\n", network()->name(p));
     return 0;
   }
 };
