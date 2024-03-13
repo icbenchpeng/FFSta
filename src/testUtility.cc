@@ -1,5 +1,5 @@
 #include "TestFramework.hh"
-#include "BitMap.hh"
+#include "utility/BitMap.hh"
 
 namespace sta {
 
