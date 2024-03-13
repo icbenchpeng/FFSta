@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include "BitMap.hh"
+#include "utility/BitMap.hh"
 #include "TaggedData.hh"
 
 namespace sta {

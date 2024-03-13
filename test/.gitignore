@@ -1,7 +1,9 @@
 results
-
+*.lib
 *.log
 *.def
 *.lef
 *.sdc
+*.db
 *.v
+setRC.tcl

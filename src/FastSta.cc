@@ -24,9 +24,6 @@ FastSta::create(StaState* sta) {
 StaState*
 FastStaConcrete::s_sta = nullptr;
 
-Tcl_Interp*
-FastSta::tcl_interp = nullptr;
-
 FastStaConcrete::FastStaConcrete(StaState* sta) : FastSta() {
   s_sta = sta;
   arrival_queue = new FastSchedQueue;

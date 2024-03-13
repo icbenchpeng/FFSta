@@ -1,50 +1,56 @@
 #ifndef   FastSta_TestFramework_hh_includeded
 #define   FastSta_TestFramework_hh_includeded
 
+#include "tcl.h"
 #include <cassert>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <atomic>
+#include "sta/Sta.hh"
+#include "sta/Search.hh"
+#include "sta/Network.hh"
+#include "ord/OpenRoad.hh"
+#include "db_sta/dbSta.hh"
 
 namespace sta {
 
-class Logger1 {
- public:
-  // if defined log file path, redirect output to it
-  Logger1(): stream(&std::cout), destruct(false) {}
-  Logger1(std::string const& log_filename): destruct(true) {
-    stream = new std::ofstream();
-    ((std::ofstream*)stream)->open(log_filename.c_str());
-    assert(((std::ofstream*)stream)->is_open());
-  }
-  virtual ~Logger1() {
-    if (destruct){
-      ((std::ofstream*)stream)->close();
-      delete stream;
-    }
-  }
-
-  template<typename ...Args>
-  void warn(std::string const& fmt, Args... args) {
-	size_t sz = 1 + snprintf(nullptr, 0, fmt.c_str(), args...);
-    char buffer[sz];
-    snprintf(buffer, sz, fmt.c_str(), args...);
-    log(buffer);
-  }
-  void log(std::string const & s) { *stream << s << std::flush; }
-  operator std::ostream& () { return *stream; }
- protected:
-  std::ostream* stream;
-  bool destruct: 1;
-};
-
 class BaseSystem {
+protected:
   // typedef utl::Logger Logger;
+  class Logger {
+  public:
+    // if defined log file path, redirect output to it
+    Logger(): stream(&std::cout), destruct(false) {}
+    Logger(std::string const& log_filename): destruct(true) {
+	  stream = new std::ofstream();
+      ((std::ofstream*)stream)->open(log_filename.c_str());
+      assert(((std::ofstream*)stream)->is_open());
+    }
+    virtual ~Logger() {
+	  if (destruct){
+	    ((std::ofstream*)stream)->close();
+	    delete stream;
+	  }
+    }
+
+    template<typename ...Args>
+    void warn(std::string const& fmt, Args... args) {
+	  size_t sz = 1 + snprintf(nullptr, 0, fmt.c_str(), args...);
+	  char buffer[sz];
+	  snprintf(buffer, sz, fmt.c_str(), args...);
+	  log(buffer);
+    }
+    void log(std::string const & s) { *stream << s << std::flush; }
+    operator std::ostream& () { return *stream; }
+  protected:
+    std::ostream* stream;
+    bool destruct: 1;
+  };
   struct Impl {
     Impl() : refcount(0) {}
-    Logger1*   logger;
+    Logger* logger;
     std::atomic<size_t> refcount;
   };
   static Impl* singleton;
@@ -63,11 +69,31 @@ public:
       singleton = nullptr;
     }
   }
-  void setLogger(Logger1* logger) { singleton->logger = logger; }
-  Logger1* logger()  const { return singleton->logger;  }
+  void setLogger(Logger* logger) { singleton->logger = logger; }
+  Logger* logger()  const { return singleton->logger;  }
 };
 
-class Test : public BaseSystem {
+struct TestEnv {
+  template <typename T>
+  static T* getPtr(std::string const& tclVar) {
+	const char* tcl_obj;
+	tcl_obj = Tcl_GetVar(tcl_interp, tclVar.c_str(), TCL_GLOBAL_ONLY);
+	void* p;
+	convertPtrFromString(tcl_obj, &p);
+	return reinterpret_cast<T*>(p);
+  }
+  static void setTclInterp(Tcl_Interp* i) { tcl_interp = i; }
+  static dbSta*   dbsta() { return ord::OpenRoad::openRoad()->getSta(); }
+  static Graph*   graph() { return dbsta()->graph(); }
+  static Network* network() { return dbsta()->network(); }
+private:
+  static Tcl_Interp* tcl_interp;
+
+  static const char* unpack_data(const char* c, void* ptr, size_t sz);
+  static void convertPtrFromString(const char* c, void** ptr);
+};
+
+class Test : public BaseSystem, public TestEnv {
 public:
   Test(std::string const & n) : name(n), parent(nullptr) {}
   virtual ~Test() = default;
@@ -81,22 +107,22 @@ public:
   }
   virtual Test* findCase(std::string const & case_name) { return this; }
   virtual int flow() {
-	  std::string fn = path();
+	std::string fn = path();
     int failed = 0;
-	  {
-	    Logger1 logger(fn + ".log");
-	    Logger1* oldlogger = BaseSystem::logger();
+	{
+      Logger logger(fn + ".log");
+      Logger* oldlogger = BaseSystem::logger();
       setLogger(&logger);
-	    failed = run();
+	  failed = run();
       if (!failed) failed = diff(fn);
 	    setLogger(oldlogger);
-	  }
-	  // needs elaborate failure information
+	}
+	// needs elaborate failure information
     if (failed) {
       logger()->warn("%s\n", fn.c_str());
       return 1;
     }
-	  return 0;
+	return 0;
   }
   std::string name;
   Test* parent;
@@ -157,7 +183,7 @@ public:
 class TestFramework : TestGroup {
 public:
    // n is the name of the path
-  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new Logger1()); }
+  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new Logger()); }
   virtual ~TestFramework() { delete logger(); setLogger(nullptr); } ;
   using TestGroup::add;
   Test* findCase(std::string const & case_name) {

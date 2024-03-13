@@ -1,0 +1,12 @@
+[annotation]
+  description = "smic110"
+
+[[inputs]]
+  name = "lefs"
+  uri = "https://aqua.icbench.com/benchmark/data/655b1f6dbef8d340afbd8c7d"
+  action = "include"
+
+[[inputs]]
+  name = "libs"
+  uri = "https://aqua.icbench.com/benchmark/data/655b1f71bef8d340afbd8c8c"
+  action = "include"

@@ -27,9 +27,9 @@ set_delay_calculator simple_rc
 report_check_types -max_capacitance -violators -digits 5
 sta::find_requireds
 
-set pin_to_update_from [get_pins "ctrl/U7/Z"]
+set pin_to_update_from [get_pins "ctrl/U10/Z"]
 
 
-laurel_opt -sizingdown
+# laurel_opt -sizingdown
 
-# test_fsta faststa/compile_and_sched_arrival_test
+test_fsta faststa/compile_and_sched_arrival_test

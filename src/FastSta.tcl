@@ -6,6 +6,12 @@ proc cd_eden { } {
   cd ${edendir}Eden/
 }
 
+proc source_design { design_load_tcl } {
+  set ::env(TEST_CASE_PATH) [file dirname $design_load_tcl]
+  source $design_load_tcl
+  cd_eden	
+}
+
 proc test_fsta { args } {
   set case_name [lindex $args 0]
   sta::test_faststa_cmd $case_name
