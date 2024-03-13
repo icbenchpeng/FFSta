@@ -24,6 +24,9 @@ FastSta::create(StaState* sta) {
 StaState*
 FastStaConcrete::s_sta = nullptr;
 
+Tcl_Interp*
+FastSta::tcl_interp = nullptr;
+
 FastStaConcrete::FastStaConcrete(StaState* sta) : FastSta() {
   s_sta = sta;
   arrival_queue = new FastSchedQueue;
@@ -122,6 +125,13 @@ FastStaConcrete::findAllArrivals() {
         schedArrival(fanout_tagged_data);
       }
       *(r_tagged_data->p_arrival) = arrival_res;
+      
+      // TODO : need to do this after a level down
+      s_sta->search()->requiredInvalid(r_tagged_data->tagged.v);
+      s_sta->search()->tnsInvalid(r_tagged_data->tagged.v);
+      ArrivalVisitor::constrainedRequiredsInvalid(s_sta, r_tagged_data->tagged.v, r_tagged_data->tagged.tag->isClock());
+      ArrivalVisitor visitor(s_sta);
+      visitor.enqueueRefPinInputDelays(r_tagged_data->tagged.v->pin());
     } else {
       std::cout << "arrival not pass, vertex name : " << r_tagged_data->tagged.v->name(s_sta->network()) << "  tag : " << r_tagged_data->tagged.tag->asString(s_sta) << '\n';
       std::cout << "arrival before : " << (arrival_before * 1e9) << " "

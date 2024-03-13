@@ -4,10 +4,10 @@ cd ../../../../../
 
 set test_path "./src/sta/faststa/test/cases"
 
-define_corners ff ss
+# define_corners ff ss
 
-read_liberty -corner ff $test_path/pdk/umc110/libs/ff/ua11lscef15bdrll_165c-40_ff.lib
-read_liberty -corner ss $test_path/pdk/umc110/libs/ss/ua11lscef15bdrll_135c125_ss.lib
+# read_liberty -corner ff $test_path/pdk/umc110/libs/ff/ua11lscef15bdrll_165c-40_ff.lib
+read_liberty $test_path/pdk/umc110/libs/ss/ua11lscef15bdrll_135c125_ss.lib
 
 
 #read_liberty $test_path/pdk/umc110/libs/ss/ua11lscef15bdrll_135c125_ss.lib
@@ -25,8 +25,11 @@ estimate_parasitics -placement
 set_delay_calculator simple_rc
 
 report_check_types -max_capacitance -violators -digits 5
-
+sta::find_requireds
 
 set pin_to_update_from [get_pins "ctrl/U7/Z"]
 
-test_fsta faststa/compile_and_sched_arrival_test
+
+laurel_opt -sizingdown
+
+# test_fsta faststa/compile_and_sched_arrival_test

@@ -10,16 +10,16 @@
 
 namespace sta {
 
-class Logger {
+class Logger1 {
  public:
   // if defined log file path, redirect output to it
-  Logger(): stream(&std::cout), destruct(false) {}
-  Logger(std::string const& log_filename): destruct(true) {
+  Logger1(): stream(&std::cout), destruct(false) {}
+  Logger1(std::string const& log_filename): destruct(true) {
     stream = new std::ofstream();
     ((std::ofstream*)stream)->open(log_filename.c_str());
     assert(((std::ofstream*)stream)->is_open());
   }
-  virtual ~Logger() {
+  virtual ~Logger1() {
     if (destruct){
       ((std::ofstream*)stream)->close();
       delete stream;
@@ -44,7 +44,7 @@ class BaseSystem {
   // typedef utl::Logger Logger;
   struct Impl {
     Impl() : refcount(0) {}
-    Logger*   logger;
+    Logger1*   logger;
     std::atomic<size_t> refcount;
   };
   static Impl* singleton;
@@ -63,8 +63,8 @@ public:
       singleton = nullptr;
     }
   }
-  void setLogger(Logger* logger) { singleton->logger = logger; }
-  Logger* logger()  const { return singleton->logger;  }
+  void setLogger(Logger1* logger) { singleton->logger = logger; }
+  Logger1* logger()  const { return singleton->logger;  }
 };
 
 class Test : public BaseSystem {
@@ -84,8 +84,8 @@ public:
 	  std::string fn = path();
     int failed = 0;
 	  {
-	    Logger logger(fn + ".log");
-	    Logger* oldlogger = BaseSystem::logger();
+	    Logger1 logger(fn + ".log");
+	    Logger1* oldlogger = BaseSystem::logger();
       setLogger(&logger);
 	    failed = run();
       if (!failed) failed = diff(fn);
@@ -157,7 +157,7 @@ public:
 class TestFramework : TestGroup {
 public:
    // n is the name of the path
-  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new Logger()); }
+  TestFramework(std::string const & n) : TestGroup(n) { setLogger(new Logger1()); }
   virtual ~TestFramework() { delete logger(); setLogger(nullptr); } ;
   using TestGroup::add;
   Test* findCase(std::string const & case_name) {

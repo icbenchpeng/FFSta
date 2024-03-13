@@ -40,6 +40,15 @@ class FastSchedQueue {
     assert(d);
     queue.insert(d);
   }
+
+  std::vector<TaggedVertex> reSchedAll() {
+    std::vector<TaggedVertex> res;
+    for (auto tagged_data : queue) {
+      res.push_back(tagged_data->tagged);
+    }
+    queue.clear();
+    return res;
+  }
 };
 
 class FastStaConcrete : public FastSta {
@@ -114,7 +123,7 @@ class FastStaConcrete : public FastSta {
 
   void compile() {}
   void compileTestBuilder() override {
-    std::cout << c_tagged_data_builder.toString() << std::endl;
+    // std::cout << c_tagged_data_builder.toString() << std::endl;
     toRuntime();
   }
 
@@ -132,7 +141,7 @@ class FastStaConcrete : public FastSta {
     //   to_data.fanins.insert(from);
     }
 
-    void buildOutRTaggedData(RTaggedDataForm& r_tagged_data_form) {
+    void buildOutRTaggedData(RTaggedDataForm& r_tagged_data_form, FastSchedQueue*& queue) {
       if (tagged_vertexs.empty()) return ;
       
       // If there are any data in tagged_vertexs, need to rebuild. TODO : incremental build
@@ -142,11 +151,13 @@ class FastStaConcrete : public FastSta {
           tagged_vertexs.emplace(tagged_vertex, *tagged_data);
         }
       }
-
+      auto&& sched_tagged_vertexs = queue->reSchedAll();
       r_tagged_data_form.clear();
 
       size_t sum_size = 0;
       for (auto&& [tagged_vertex, tagged_data] : tagged_vertexs) {
+        assert(tagged_vertex.v != nullptr);
+        assert(tagged_vertex.tag != nullptr);
         sum_size += tagged_data.byteSize();
       }
       r_tagged_data_form.start = (RTaggedData*)malloc(sum_size);
@@ -175,6 +186,9 @@ class FastStaConcrete : public FastSta {
           i++;
         }
       }
+      for (auto tagged_vertex : sched_tagged_vertexs) {
+        queue->sched(r_tagged_data_form.get(tagged_vertex));
+      }
       tagged_vertexs.clear();
     }
 
@@ -185,7 +199,7 @@ class FastStaConcrete : public FastSta {
 
  public:  // runtime
   void toRuntime() {
-    c_tagged_data_builder.buildOutRTaggedData(r_tagged_data_form);
+    c_tagged_data_builder.buildOutRTaggedData(r_tagged_data_form, arrival_queue);
   }
 
   struct RTaggedData : public TaggedData {
