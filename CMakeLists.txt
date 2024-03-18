@@ -8,6 +8,7 @@ set(FASTSTA_SOURCE
   src/MakeFastSta.cc
   src/testFastSta.cc
   src/testUtility.cc
+  src/testRunTime.cc
   )
 
 swig_lib(NAME faststa

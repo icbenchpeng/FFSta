@@ -6,8 +6,9 @@
 
 namespace sta {
 
+template<typename Data>
 class FastSchedQueue {
-  struct LevelBucket : public std::vector<TaggedData*> {};
+  struct LevelBucket : public std::vector<Data*> {};
   size_t counts;
   size_t buckets_count;
   LevelBucket* buckets;
@@ -26,23 +27,23 @@ class FastSchedQueue {
  public:
   FastSchedQueue(size_t maxlevel, bool forward)
       : counts(0), buckets_count(maxlevel), buckets(new LevelBucket[maxlevel]), bucket_elem(maxlevel), forward_access(forward), process_lvl(-1), current_bucket(nullptr) {}
-  void sched(TaggedData* d) {
+  ~FastSchedQueue() { delete [] buckets; }
+  void sched(Data* d) {
     if (d && !d->sched) {
       d->sched = true;
-      setBucket(d->tagged.v->level()).push_back(d);
+      setBucket(d->level()).push_back(d);
       ++counts;
     }
   }
   bool empty() const { return counts == 0; }
-  TaggedData* get() {
+  Data* get() {
     if (empty()) return nullptr;
     if (current_bucket) {
       LevelBucket& b = *current_bucket;
-      TaggedData* r = b.back();
-      size_t level = r->tagged.v->level();
+      Data* r = b.back();
       b.pop_back();
       if (b.empty()) {
-        bucket_elem[bucketId(level)] = false;
+        bucket_elem[bucketId(r->level())] = false;
         current_bucket = nullptr;
       }
       --counts;
@@ -50,7 +51,7 @@ class FastSchedQueue {
       return r;
     }
     process_lvl = bucket_elem.next(process_lvl);
-    current_bucket = current_bucket + process_lvl;
+    current_bucket = buckets + process_lvl;
     return get();
   }
 };
