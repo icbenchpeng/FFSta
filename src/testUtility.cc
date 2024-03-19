@@ -36,20 +36,20 @@ class option_ut : public Test {
 public:
   option_ut() : Test(__FUNCTION__) {}
   int run() {
-	Options opts;
-	opts.registor(new OptionT<bool>("has_set_value"));
-	opts.parse("has_set_value")->set("true");
-	logger()->warn("%b\n", opts.get<bool>("has_set_value"));
-	opts.parse("has_set_value")->set("false");
-	logger()->warn("%b\n", opts.get<bool>("has_set_value"));
+    Options opts;
+    opts.registor(new OptionT<bool>("has_set_value"));
+    opts.parse("has_set_value")->set("true");
+    logger()->warn("%b\n", opts.get<bool>("has_set_value"));
+    opts.parse("has_set_value")->set("false");
+    logger()->warn("%b\n", opts.get<bool>("has_set_value"));
 
-	opts.registor(new OptionT<int>("int_val"));
+    opts.registor(new OptionT<int>("int_val"));
     opts.parse("int_val")->set("100");
     logger()->warn("%d\n", opts.get<int>("int_val"));
 
     opts.registor(new OptionT<float>("float_val"));
-	opts.parse("float_val")->set("10.1030");
-	logger()->warn("%f\n", opts.get<float>("float_val"));
+    opts.parse("float_val")->set("10.1030");
+    logger()->warn("%f\n", opts.get<float>("float_val"));
 
     //opts.setOptValue("float_val", "1.1.1");
 	return 0;
