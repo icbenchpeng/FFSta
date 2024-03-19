@@ -1,6 +1,7 @@
 record_tests {
-  runtime/fastschedqueue
+  utility/option
   utility/bitmap
   utility/testenv
+  runtime/fastschedqueue
   faststa/testTaggedData
 }
