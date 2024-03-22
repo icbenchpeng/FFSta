@@ -10,6 +10,7 @@ set(FASTSTA_SOURCE
   src/testUtility.cc
   src/testRunTime.cc
   src/utility/Options.cc
+  src/utility/BitStream.cc
   )
 
 swig_lib(NAME faststa
