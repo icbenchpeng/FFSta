@@ -1,5 +1,6 @@
 #include <initializer_list>
 #include "runtime/FastSchedQueue.hh"
+#include "runtime/VirtualStack.hh"
 #include "TestFramework.hh"
 
 namespace sta {
@@ -94,10 +95,30 @@ public:
 unsigned
 sched_queue::Data::count_id = 0;
 
+class stack : public Test {
+public:
+  stack() : Test(__FUNCTION__) {}
+  static long long add(long long const & a, long long & b) {
+    return a + b;
+  }
+  int run() {
+    Stack stack(4096);
+    long long& b = stack.push<long long>();
+    b = 1000;
+    long long& a = stack.push<long long>();
+    a = 1;
+    stack.call(add);
+    long long& r = stack.pop<long long>();
+    logger()->warn("%d", r);
+    return 0;
+  }
+};
+
 Test*
 fsta_runtime_test() {
   TestGroup* group = new TestGroup("runtime");
   group->add(new sched_queue);
+  group->add(new stack);
   return group;
 }
 

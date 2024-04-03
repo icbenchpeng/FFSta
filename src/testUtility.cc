@@ -1,8 +1,32 @@
 #include "TestFramework.hh"
 #include "utility/BitMap.hh"
 #include "utility/Options.hh"
+#include "utility/BitStream.hh"
 
 namespace sta {
+
+using namespace fsta;
+
+class bitstream_ut : public Test {
+public:
+  bitstream_ut() : Test(__FUNCTION__) {}
+  int run() {
+	const char* filename = "/tmp/testbitstream.log";
+    BitStream s(filename, true);
+    assert(s.is_open());
+    char buffer [] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    s.write(buffer, sizeof(buffer));
+    s.write(10, "aaaaabaaaa", 10);
+    s.close();
+
+    BitStream ss(filename);
+    char buffer2[sizeof(buffer)] = {0};
+    ss.read(buffer2, 20);
+    ss.close();
+    logger()->warn("%s\n", buffer2);
+    return 0;
+  }
+};
 
 class bitmap_ut : public Test {
 public:
@@ -69,6 +93,7 @@ public:
 Test*
 fsta_utility_test() {
   TestGroup* group = new TestGroup("utility");
+  group->add(new bitstream_ut);
   group->add(new bitmap_ut);
   group->add(new network_ptr_access);
   group->add(new option_ut);
