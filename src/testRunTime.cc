@@ -98,6 +98,9 @@ sched_queue::Data::count_id = 0;
 class stack : public Test {
 public:
   stack() : Test(__FUNCTION__) {}
+  static void incr(long long& v) {
+    v++;
+  }
   static long long add(long long const & a, long long & b) {
     return a + b;
   }
@@ -108,6 +111,8 @@ public:
     long long& a = stack.push<long long>();
     a = 1;
     stack.call(add);
+    stack.call(incr);
+    stack.push<long long>();
     long long& r = stack.pop<long long>();
     logger()->warn("%d", r);
     return 0;

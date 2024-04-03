@@ -22,7 +22,10 @@ public:
   inline void call(RetTy (*func)(Args ...)) {
     push<RetTy>() = func(pop<std::remove_cvref_t<Args>>()...);
   }
-
+  template<typename ... Args>
+  inline void call(void (*func)(Args ...)) {
+    func(pop<std::remove_cvref_t<Args>>()...);
+  }
   template<typename T>
   inline T& push() {
     size_t sz = toWords(sizeof(T));
