@@ -13,6 +13,7 @@ set(FASTSTA_SOURCE
   src/testRunTime.cc
   src/testCompile.cc
   src/compile/DataModel/STAEvalBase.cc
+  src/compile/DataModel/STAEvalIds.cc
   src/utility/Options.cc
   src/utility/BitStream.cc
   )
