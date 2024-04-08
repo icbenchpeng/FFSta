@@ -98,22 +98,47 @@ sched_queue::Data::count_id = 0;
 class stack : public Test {
 public:
   stack() : Test(__FUNCTION__) {}
-  static void incr(long long& v) {
-    v++;
-  }
-  static long long add(long long const & a, long long & b) {
-    return a + b;
-  }
+
+  struct Load {
+	Load(long long vv) : v(vv) {}
+    void eval(Stack& s) {
+      long long& b = s.push<long long>();
+      b = v;
+    }
+    long long v;
+  };
+  struct Store {
+    Store(long long& rr) : r(rr) {}
+    void eval(Stack& s) {
+      r = s.pop<long long>();
+    }
+    long long & r;
+  };
+  struct Incr {
+	void eval(Stack& s) {
+      s.call(incr);
+      s.push<long long>();
+	}
+    static void incr(long long& v) {
+      v++;
+    }
+  };
+  struct Add {
+	void eval(Stack& s) {
+	  s.call(add);
+	}
+    static long long add(long long const & a, long long & b) {
+      return a + b;
+    }
+  };
   int run() {
     Stack stack(4096);
-    long long& b = stack.push<long long>();
-    b = 1000;
-    long long& a = stack.push<long long>();
-    a = 1;
-    stack.call(add);
-    stack.call(incr);
-    stack.push<long long>();
-    long long& r = stack.pop<long long>();
+    Load b(1000); b.eval(stack);
+    Load a(1); a.eval(stack);
+    Incr incr; incr.eval(stack);
+    Add  add;  add.eval(stack);
+    long long r;
+    Store s(r); s.eval(stack);
     logger()->warn("%d", r);
     return 0;
   }
