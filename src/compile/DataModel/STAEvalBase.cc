@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include "compile/DataModel/STAEvalBase.hh"
 
-namespace sta {
-namespace compile_datamodel {
+namespace fsta {
 
 thread_local STAEvalBase::Manager*
 STAEvalBase::manager = nullptr;
@@ -18,5 +17,4 @@ STAEvalBase::createManager() {
   STAEvalBase::manager = new Manager;
 }
 
-} // end namespace compile_datamodel
-} // end namespace sta
+} // end namespace fsta

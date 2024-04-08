@@ -5,8 +5,7 @@
 #include <typeinfo>
 #include <unordered_set>
 
-namespace sta {
-namespace compile_datamodel {
+namespace fsta {
 
 class STAEvalBase {
 public:
@@ -52,5 +51,4 @@ public:
   static thread_local Manager* manager;
 };
 
-} // end namespace compile_datamodel
-} // end namespace sta
+} // end namespace fsta

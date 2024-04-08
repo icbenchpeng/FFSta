@@ -2,13 +2,15 @@
 
 #include "STAEvalBase.hh"
 
-namespace sta {
+namespace fsta {
 
 template<typename T >
-struct STAEvalVir : public compile_datamodel::STAEvalBase {
+struct STAEvalVir : public STAEvalBase {
 protected:
   STAEvalVir() {}
 public:
+  STAEvalVir(ImplBase* i) { impl = i; refCountIncr(impl); }
+  STAEvalVir(ImplBase const * i) { impl = (ImplBase*)i; refCountIncr(impl); }
   STAEvalVir(STAEvalBase const & base) { impl = base.impl; refCountIncr(impl); }
   STAEvalVir& operator=(STAEvalBase const & base) {
     refCountDecr(impl);
@@ -25,6 +27,8 @@ struct STAEvalCon : public STAEvalVir<T> {
 protected:
   typedef STAEvalVir<T> Super;
 public:
+  STAEvalCon(typename Super::ImplBase* i) { Super::impl = i; refCountIncr(Super::impl); }
+  STAEvalCon(typename Super::ImplBase const * i) { Super::impl = (typename Super::ImplBase*)i; refCountIncr(Super::impl); }
   STAEvalCon(STAEvalCon const & o) { Super::impl = o.impl; Super::refCountIncr(Super::impl); }
   T* operator->() { return (T*)Super::impl; }
   template<typename ... Args>
@@ -43,4 +47,4 @@ public:
   ~STAEvalCon() { Super::refCountDecr(Super::impl); }
 };
 
-} // end namespace sta
+} // end namespace fsta

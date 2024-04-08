@@ -1,10 +1,13 @@
 #include "TestFramework.hh"
 #include "compile/DataModel/STAEvalVirtual.hh"
+#include "compile/DataModel/STAEval.hh"
+
+using namespace fsta;
 
 namespace sta {
 namespace test_evalbase {
 
-struct V : public compile_datamodel::STAEvalBase::ImplBase {
+struct V : public STAEvalBase::ImplBase {
   V(int v) : valueV(v) { hashValue = valueV; }
   int valueV;
 };
