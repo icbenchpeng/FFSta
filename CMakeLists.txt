@@ -2,6 +2,8 @@ project (faststa
   LANGUAGES CXX
   )
 
+execute_process(COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/include/.DS_Store/.gencode.py ${CMAKE_CURRENT_SOURCE_DIR}/include/datamodel)
+
 set(FASTSTA_SOURCE
   src/FastSta.cc
   src/TestFramework.cc
@@ -9,6 +11,8 @@ set(FASTSTA_SOURCE
   src/testFastSta.cc
   src/testUtility.cc
   src/testRunTime.cc
+  src/testCompile.cc
+  src/compile/DataModel/STAEvalBase.cc
   src/utility/Options.cc
   src/utility/BitStream.cc
   )

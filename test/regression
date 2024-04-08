@@ -14,6 +14,7 @@ source [file join $openroad_dir "test" "regression.tcl"]
 source [file join $test_dir "regression_tests.tcl"]
 
 exec mkdir -p [file join $test_dir "results/utility"]
+exec mkdir -p [file join $test_dir "results/compile"]
 exec mkdir -p [file join $test_dir "results/faststa"]
 
 regression_main

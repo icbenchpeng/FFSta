@@ -1,4 +1,5 @@
 record_tests {
+  compile/test_evalbase
   runtime/virtualstack
   utility/bitstream
   utility/option
