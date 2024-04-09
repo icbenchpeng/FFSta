@@ -44,6 +44,7 @@ protected:
     }
     void log(std::string const & s) { *stream << s << std::flush; }
     operator std::ostream& () { return *stream; }
+    void binary(char* buffer, size_t sz) { stream->write(buffer, sz); *stream << std::flush; }
   protected:
     std::ostream* stream;
     bool destruct: 1;
