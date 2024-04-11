@@ -4,17 +4,22 @@
 #include <cstddef>
 #include <typeinfo>
 #include <unordered_set>
+#include <memory>
 
 namespace fsta {
 
 class STAEvalBase {
 public:
+  struct UserObj {
+    virtual ~UserObj() {}
+  };
   struct ImplBase {
     ImplBase() : refCount(0), id(-1), hashValue(-1) {}
     virtual ~ImplBase() {}
     unsigned refCount;
     unsigned id;
     const std::type_info* rtti;
+    std::shared_ptr<UserObj> user;
     size_t hashValue;
 
     size_t hash() const { return hashValue; }
