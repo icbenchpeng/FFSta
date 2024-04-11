@@ -8,8 +8,8 @@ class Stack {
     wordSz = sizeof(Word),
     largeMemory = 1024 * 1024 * 1024
   };
-  Word* memory;
-  Word* top;
+  Word*  memory;
+  Word*  top;
   size_t size;
 public:
   Stack(size_t initial_size) : memory(nullptr), top(nullptr), size(initial_size) {
@@ -18,14 +18,8 @@ public:
   }
   ~Stack() { ::free(memory); }
 
-  template<typename RetTy, typename ... Args>
-  inline void call(RetTy (*func)(Args ...)) {
-    push<RetTy>() = func(pop<std::remove_cvref_t<Args>>()...);
-  }
-  template<typename ... Args>
-  inline void call(void (*func)(Args ...)) {
-    func(pop<std::remove_cvref_t<Args>>()...);
-  }
+  template<typename RetTy, typename ... Args> inline void call(RetTy (*func)(Args ...)) { push<RetTy>() = func(pop<std::remove_cvref_t<Args>>()...); }
+  template<typename ... Args> inline void call(void (*func)(Args ...)) { func(pop<std::remove_cvref_t<Args>>()...); }
   template<typename T>
   inline T& push() {
     size_t sz = toWords(sizeof(T));
@@ -34,12 +28,11 @@ public:
     top += sz;
     return *ret;
   }
-  template<typename T>
-  inline T& pop() {
-    size_t sz = toWords(sizeof(T));
-    top -= sz;
-    return *(T*)top;
-  }
+  template<typename T> inline T& pop() { top -= toWords(sizeof(T)); return *(T*)top; }
+  template<typename T> inline T& access(size_t off) { return *(T*)(top - off); }
+  // basic functions
+  inline void popFree(size_t sz) { top -= sz; }
+  inline void pushMalloc(size_t sz) { if (full(sz)) realloc(sz); top += sz; }
 private:
   inline size_t toWords(size_t sz) const { return (sz + wordSz - 1) / wordSz; }
   inline bool full(size_t sz) const { return (memory + size - top) < sz; }
