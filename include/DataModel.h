@@ -36,7 +36,7 @@ enum JumpType {
   JTySched     = 0x4, // jump sched with level
 };
 struct StJump {
-  OpType       op : 2 = JP; // can only be JP
+  OpType       op : 2;      // can only be JP
   JumpType   type : 6;
   SchedLevel free : 8;      //  jsc level, 0 for large level after jmp offset,
   ShortAddr  addr : 16;     // 0 for long jmp, otherwise address
