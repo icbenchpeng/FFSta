@@ -2,6 +2,7 @@
 #include "utility/BitMap.hh"
 #include "utility/Options.hh"
 #include "utility/BitStream.hh"
+#include "utility/AliasMap.hh"
 
 namespace sta {
 
@@ -90,9 +91,26 @@ public:
   }
 };
 
+class aliasmap : public Test {
+public:
+  aliasmap() : Test(__FUNCTION__) {}
+  int run() {
+	AliasMap<unsigned> m;
+	m(97, 80);
+	m(9, 80);
+	m(7, 97);
+	m(77, 99);
+	for (auto & k : m.keys()) {
+	  logger()->warn("%d:%d\n", k, m[k]);
+	}
+    return 0;
+  }
+};
+
 Test*
 fsta_utility_test() {
   TestGroup* group = new TestGroup("utility");
+  group->add(new aliasmap);
   group->add(new bitstream_ut);
   group->add(new bitmap_ut);
   group->add(new network_ptr_access);
