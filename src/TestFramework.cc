@@ -73,10 +73,12 @@ extern Test* fsta_utility_test();
 extern Test* fsta_faststa_test();
 extern Test* fsta_runtime_test();
 extern Test* fsta_compile_test();
+extern Test* fsta_compile_infra_test();
 
 void
 fsta_test(TestFramework* tf) {
   tf->add(fsta_utility_test());
+  tf->add(fsta_compile_infra_test());
   tf->add(fsta_compile_test());
   tf->add(fsta_faststa_test());
   tf->add(fsta_runtime_test());

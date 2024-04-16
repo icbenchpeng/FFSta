@@ -13,6 +13,8 @@
 
 namespace fsta {
 
+using Pin      = sta::Pin;
+
 using StaState = sta::StaState;
 using Vertex   = sta::Vertex;
 using Edge     = sta::Edge;

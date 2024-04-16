@@ -12,6 +12,7 @@ set(FASTSTA_SOURCE
   src/testUtility.cc
   src/testRunTime.cc
   src/testCompileInfra.cc
+  src/testCompile.cc
   src/compile/DataModel/STAEvalBase.cc
   src/compile/DataModel/STAEvalIds.cc
   src/compile/DataModel/STAEvalOffsets.cc

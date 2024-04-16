@@ -148,7 +148,7 @@ public:
 };
 
 Test*
-fsta_compile_test() {
+fsta_compile_infra_test() {
   TestGroup* group = new TestGroup("compile");
   group->add(new evalbase);
   group->add(new evalids);
