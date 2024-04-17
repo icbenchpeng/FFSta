@@ -22,10 +22,6 @@ struct splitnetwork : public Test {
 	  for (auto v : *p)
         logger()->warn("  %s\n", network->name(v->pin()));
 	}
-
-	for (auto p : s.idmap2) {
-      logger()->warn("%s:%d\n", network->name(p.first->pin()), p.second);
-	}
     return 0;
   }
 };

@@ -65,15 +65,16 @@ class NetworkSpliter : public sta::StaState {
 	else {
 	  Id idf = idmap[f];
 	  Id idt = idmap[t];
-	  (*alias)(idf, idt);
+	  (*pAlias)(idf, idt);
 	}
   }
 public:
-  NetworkSpliter(FastSta* s) : sta(s), idCount(0), alias(nullptr), pIdMap(nullptr) { copyState((StaState*)sta); }
+  NetworkSpliter(FastSta* s) : idCount(0), sta(s), pAlias(nullptr), pIdMap(nullptr) { copyState((StaState*)sta); }
   void split() {
 	AliasMap<Id> aliasMap;
-	pIdMap = &idmap2;
-	alias = &aliasMap;
+	NetworkIdMap  idmap;
+	pIdMap = &idmap;
+	pAlias  = &aliasMap;
 	SearchPredNonReg2 srch_non_reg(this);
 	BfsBkwdEdgeIterator bkwd_iter(BfsIndex::other, &srch_non_reg, this);
 	VertexSet* ends = search_->endpoints();
@@ -89,7 +90,7 @@ public:
 	idCount = 0;
 	std::map<Id, Id> ids;
 	for (auto& p : *pIdMap) {
-      Id c = collect(ids, aliasMap[p.second]);
+      Id c = collect(ids, (*pAlias)[p.second]);
       p.second = c;
       subNetworks.get(c)->push_back(p.first);
 	}
@@ -103,7 +104,7 @@ public:
   }
 
   SubNetworks   subNetworks;
-  NetworkIdMap  idmap2;
+  Id            idCount;
 private:
   Id collect(std::map<Id, Id>& ids, Id id) {
     auto it = ids.find(id);
@@ -114,8 +115,7 @@ private:
     return ret;
   }
   FastSta*      sta;
-  Id            idCount;
-  AliasMap<Id>* alias;
+  AliasMap<Id>* pAlias;
   NetworkIdMap* pIdMap;
 
 };
