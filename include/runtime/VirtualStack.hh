@@ -1,6 +1,11 @@
 #pragma once
 
-namespace sta {
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <cstring>
+
+namespace fsta {
 
 class Stack {
   typedef uint32_t Word;

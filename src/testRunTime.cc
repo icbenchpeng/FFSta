@@ -2,8 +2,11 @@
 #include "runtime/FastSchedQueue.hh"
 #include "runtime/VirtualStack.hh"
 #include "TestFramework.hh"
+#include "runtime/InsModel/Functions.hh"
 
 namespace sta {
+
+using namespace fsta;
 
 class sched_queue : public Test {
 public:
@@ -144,11 +147,56 @@ public:
   }
 };
 
+static long long add(long long a, long long b) {
+  return a + b;
+}
+
+class funcmanager : public Test {
+public:
+  struct Load {
+	Load(long long vv) : v(vv) {}
+	void eval(Stack& s) {
+	  long long& b = s.push<long long>();
+	  b = v;
+	}
+	long long v;
+  };
+  struct Store {
+	Store(long long& rr) : r(rr) {}
+	void eval(Stack& s) {
+	  r = s.pop<long long>();
+	}
+	long long & r;
+  };
+  struct Call {
+    Call(CalcType ty, FuncManager* mgr) : func(mgr->get(ty).fb){}
+    void eval(Stack& s) {
+      func->call(s);
+    }
+    FuncBase* func;
+  };
+  funcmanager() : Test(__FUNCTION__) {}
+  int run() {
+    FuncManager mgr;
+    CalcType ct = mgr.registor(add, "add");
+    logger()->warn("%d\n", mgr.find(add));
+    Stack stack(4096);
+    Load b(1000);       b.eval(stack);
+	Load a(1);          a.eval(stack);
+	Call c(ct, &mgr);   c.eval(stack);
+	long long r;
+	Store d(r);         d.eval(stack);
+	logger()->warn("%d\n", r);
+    return 0;
+  }
+};
+
 Test*
 fsta_runtime_test() {
   TestGroup* group = new TestGroup("runtime");
   group->add(new sched_queue);
   group->add(new stack);
+  group->add(new funcmanager);
   return group;
 }
 

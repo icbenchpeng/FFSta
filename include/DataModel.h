@@ -1,6 +1,9 @@
 #ifndef  DataModel_h_fast
 #define  DataModel_h_fast
 
+#include <cstddef>
+#include <cstdint>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,6 +44,20 @@ struct StJump {
   SchedLevel free : 8;      //  jsc level, 0 for large level after jmp offset,
   ShortAddr  addr : 16;     // 0 for long jmp, otherwise address
 };
+
+enum PopOp {
+  PopAll = 0,
+  PopNon = 1,
+};
+typedef uint32_t CalcType;
+struct StCalc {
+  OpType       op : 2;      // can only be CA
+  PopOp       pop : 1;      // pop stack
+  CalcType   type : 30;
+};
+
+/// functions defined below
+
 
 #ifdef __cplusplus
 } // end extern "C"

@@ -18,6 +18,8 @@ set(FASTSTA_SOURCE
   src/compile/DataModel/STAEvalOffsets.cc
   src/utility/Options.cc
   src/utility/BitStream.cc
+  src/utility/DLLoader.cc
+  src/DataModel.cc
   )
 
 swig_lib(NAME faststa

@@ -103,6 +103,7 @@ public:
 	return (port = network_->libertyPort(p)) && (cell = port->libertyCell()) && cell->hasSequentials();
   }
 
+  size_t        size() const { return idCount; }
   SubNetworks   subNetworks;
   Id            idCount;
 private:
