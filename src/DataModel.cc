@@ -15,7 +15,8 @@ initFuncManager() {
 	sFuncManager = new FuncManager;
 	atexit(deleteFuncManager);
 #define REGISTOR_FUNC(FUNC) sFuncManager->registor(FUNC, #FUNC);
-// REGISTOR_FUNC();
+
+	//REGISTOR_FUNC();
 
 #undef  REGISTOR_FUNC
   }

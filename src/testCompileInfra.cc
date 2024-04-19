@@ -91,7 +91,7 @@ public:
 
   struct Jump : public Offsets {
     Jump(II const to) : bb(bbmap.set(to)) {}
-    void dump(ByteCodeStream& s) const {
+    void dump(BitStream& s) const {
       patches.set(&s);
       s.write((char*)code.c_str(), code.size());
       patches.patch(bb);
@@ -102,7 +102,7 @@ public:
   struct BasicBlock : public Offsets {
 	BasicBlock(II const id) : bb(bbmap.set(id)) {}
 	BasicBlockIdBase* bb;
-	void dump(ByteCodeStream& s) const {
+	void dump(BitStream& s) const {
 	  patches.set(&s);
       bbmap.set(bb, s.tellp());
       s.write((char*)code.c_str(), code.size());
@@ -123,7 +123,7 @@ public:
 	  logger()->warn("reset:");
 	logger()->warn("%d\n", offsets.bbmap[i]);
 
-	ByteCodeStream s("/tmp/kirinji.rainyrunway.music", true);
+	BitStream s("/tmp/kirinji.rainyrunway.music", true);
 	char uppercode [] = "Step out\nThough it keeps raining\n";
 	s.write(uppercode, sizeof(uppercode));
 	II bbTag {1, 2};
@@ -136,7 +136,7 @@ public:
 	s.close();
 
 	// check result
-	ByteCodeStream ss("/tmp/kirinji.rainyrunway.music");
+	BitStream ss("/tmp/kirinji.rainyrunway.music");
 	while (ss.good()) {
 	  char c = ss.get();
 	  if (ss.good())

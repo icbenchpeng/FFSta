@@ -125,7 +125,7 @@ public:
 	  if (off == InvalidOffset)
 		addRequire(bb, pos);
 	}
-	void set(ByteCodeStream* s) { stream = s; }
+	void set(BitStream* s) { stream = s; }
 
 	void addRequire(BasicBlockIdBase* bb, Offset pos) {
       auto r = find(bb);
@@ -134,7 +134,7 @@ public:
 	}
 	void clear() { for (auto & x : *this) { delete x.second; } Super::clear(); }
 	~PatchRequires() { clear(); }
-	ByteCodeStream* stream;
+	BitStream* stream;
   };
 
   static thread_local BBMap bbmap;

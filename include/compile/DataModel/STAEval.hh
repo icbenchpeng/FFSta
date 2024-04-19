@@ -96,15 +96,17 @@ using STABB = STAEvalCon<BasicBlock<T>>;
 template< typename F >
 class Calc : public Eval {
 public:
-  Calc(F f, PopOp pop) {
+  Calc(F f, PopOp pop = false) {
 	code.op   = CA;
-	code.pop  = pop;
+	code.pop  = pop; // pop
 	code.type = initFuncManager().find(f);
   }
   StCalc code;
+  Word   popCount = 0;
 
   void dump(BitStream& s) {
 	s.write((char*)&code, sizeof(code));
+	if (code.pop) s.write((char*)&popCount, sizeof(popCount));
   }
 };
 template<typename Func>

@@ -16,6 +16,11 @@ enum OpType { // 2bits
   LD = 0x2, // load
   ST = 0x3, // store
 };
+typedef uint32_t Word;
+struct StIns {
+  OpType  op:2;
+  Word    unknown:30;
+};
 
 enum IdType {
   IdTy_Pin = 0,
@@ -46,18 +51,15 @@ struct StJump {
 };
 
 enum PopOp {
-  PopAll = 0,
-  PopNon = 1,
+  PopDefault = 0,
+  PopManual  = 1,
 };
 typedef uint32_t CalcType;
 struct StCalc {
   OpType       op : 2;      // can only be CA
-  PopOp       pop : 1;      // pop stack
+  PopOp       pop : 1;      // if true, use manual pop of next word
   CalcType   type : 30;
 };
-
-/// functions defined below
-
 
 #ifdef __cplusplus
 } // end extern "C"
