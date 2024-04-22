@@ -1,7 +1,7 @@
 #include "TestFramework.hh"
 #include "compile/DataModel/STAEvalVirtual.hh"
 #include "compile/DataModel/STAEval.hh"
-#include "compile/DataModel/ByteCodeStream.hh"
+#include "utility/ByteCodeStream.hh"
 
 using namespace fsta;
 

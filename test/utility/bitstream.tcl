@@ -1,3 +1,4 @@
 cd_eden
 
 test_fsta utility/bitstream_ut
+test_fsta utility/bytecodestream_ut

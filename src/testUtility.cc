@@ -3,6 +3,7 @@
 #include "utility/Options.hh"
 #include "utility/BitStream.hh"
 #include "utility/AliasMap.hh"
+#include "utility/ByteCodeStream.hh"
 
 namespace sta {
 
@@ -26,6 +27,32 @@ public:
     ss.close();
     logger()->warn("%s\n", buffer2);
     return 0;
+  }
+};
+
+class bytecodestream_ut : public Test {
+public:
+  bytecodestream_ut() : Test(__FUNCTION__) {}
+  int run() {
+    const char* filename = "/tmp/testbytecodestream.log";
+    BitStream s(filename, true);
+	assert(s.is_open());
+	char buffer [] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	s.write(buffer, sizeof(buffer));
+	s.write(10, "0123456789", 10);
+	s.close();
+	using Word = ByteCodeStream::Word;
+    ByteCodeStream cs(filename);
+    auto pcode1 = cs[10];
+    logger()->warn("%c\n", ((char*)(const Word*)pcode1)[0]);
+    auto pcode2 = cs[20];
+    logger()->warn("%d\n", pcode2.size());
+    logger()->warn("%c\n", ((char*)(const Word*)pcode2)[0]);
+    while (pcode2.bufCount()) {
+      ++pcode2;
+      logger()->warn("->%c\n", ((char*)(const Word*)pcode2)[0]);
+    }
+	return 0;
   }
 };
 
@@ -112,6 +139,7 @@ fsta_utility_test() {
   TestGroup* group = new TestGroup("utility");
   group->add(new aliasmap);
   group->add(new bitstream_ut);
+  group->add(new bytecodestream_ut);
   group->add(new bitmap_ut);
   group->add(new network_ptr_access);
   group->add(new option_ut);

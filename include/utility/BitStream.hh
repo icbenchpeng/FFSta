@@ -13,6 +13,7 @@ public:
   BitStream(std::string const & filename, bool write = false);
   void write(size_t offset, char* value, size_t bytes);
   void write(char* value, size_t bytes);
+  size_t originalFileEnd() const { return original_file_end; }
 };
 
 } // end namespace fsta

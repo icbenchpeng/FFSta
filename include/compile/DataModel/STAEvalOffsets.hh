@@ -1,10 +1,10 @@
 #pragma once
 
-#include "utility/Meta.hh"
-#include "compile/DataModel/ByteCodeStream.hh"
 #include <unordered_map>
 #include <set>
 #include <cassert>
+#include "utility/Meta.hh"
+#include "utility/ByteCodeStream.hh"
 
 namespace fsta {
 
