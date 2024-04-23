@@ -38,9 +38,10 @@ protected:
     template<typename ...Args>
     void warn(std::string const& fmt, Args... args) {
 	  size_t sz = 1 + snprintf(nullptr, 0, fmt.c_str(), args...);
-	  char buffer[sz];
+	  char* buffer = (char*)::malloc(sz);
 	  snprintf(buffer, sz, fmt.c_str(), args...);
 	  log(buffer);
+	  ::free(buffer);
     }
     void log(std::string const & s) { *stream << s << std::flush; }
     operator std::ostream& () { return *stream; }
