@@ -9,13 +9,14 @@ namespace fsta {
 struct ByteCodeStream {
   typedef uint32_t Word;
   enum {
-    wordSz = sizeof(Word)
+    wordSz = sizeof(Word),
+	pageSz = 4096
   };
   typedef uint32_t Offset;
 
   class CodeLoader {
   public:
-    CodeLoader(const Offset& offset, const ByteCodeStream* s) : start(offset), current(start), bytecodestream(s), loaded(4096, 0) { reload(start); }
+    CodeLoader(const Offset& offset, const ByteCodeStream* s) : start(offset), current(start), bytecodestream(s), loaded(pageSz, 0) { reload(start); }
     operator const Word* () const { return &loaded[(curpos() / wordSz)]; }
     size_t bufCount() const { return loaded.size() - (curpos() / wordSz); }
     size_t size() const { return stream()->originalFileEnd() - current; }
@@ -28,7 +29,7 @@ struct ByteCodeStream {
     inline CodeLoader operator-(size_t v) const { CodeLoader ret = *this; ret -= v; return ret; }
     inline CodeLoader operator+(size_t v) const { CodeLoader ret = *this; ret += v; return ret; }
   private:
-    inline size_t previous_start() const { return start < 4096 ? 0 : start - 4096; }
+    inline size_t previous_start() const { return start < pageSz ? 0 : start - pageSz; }
     inline ptrdiff_t curpos() const { return current - start; }
     void reload(const Offset& offset) {
       std::lock_guard<std::mutex> lock(bytecodestream->mutex);
@@ -36,10 +37,10 @@ struct ByteCodeStream {
       start = offset;
       auto oldpos = stream()->tellg();
       stream()->seekg(offset);
-      if (loaded.size() < 4096) loaded.resize(4096);
-      size_t sz = stream()->readsome((char*)&loaded[0], 4096 * sizeof(Word));
-      sz /= sizeof(Word);
-      if (sz < 4096) loaded.resize(sz);
+      if (loaded.size() < pageSz) loaded.resize(pageSz);
+      size_t sz = stream()->readsome((char*)&loaded[0], pageSz * wordSz);
+      sz /= wordSz;
+      if (sz < pageSz) loaded.resize(sz);
       assert(stream()->good());
       stream()->seekg(oldpos);
     }
