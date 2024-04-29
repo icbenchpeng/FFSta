@@ -24,8 +24,8 @@ struct ByteCodeStream {
     CodeLoader& operator-=(size_t v) { assert(current >= (v * wordSz)); current-= (v * wordSz); if (curpos() < 0) reload(current); return *this; }
     inline CodeLoader& operator++() { return (*this += 1); }
     inline CodeLoader& operator--() { return (*this -= 1); }
-    inline CodeLoader& operator++(int) { CodeLoader ret = *this; ++*this; return ret; }
-    inline CodeLoader& operator--(int) { CodeLoader ret = *this; --*this; return ret; }
+    inline CodeLoader operator++(int) { CodeLoader ret = *this; ++*this; return ret; }
+    inline CodeLoader operator--(int) { CodeLoader ret = *this; --*this; return ret; }
     inline CodeLoader operator-(size_t v) const { CodeLoader ret = *this; ret -= v; return ret; }
     inline CodeLoader operator+(size_t v) const { CodeLoader ret = *this; ret += v; return ret; }
   private:
