@@ -3,6 +3,7 @@
 #include "runtime/VirtualStack.hh"
 #include "TestFramework.hh"
 #include "runtime/InsModel/Functions.hh"
+#include "runtime/InsModel/CodeSection.hh"
 
 namespace sta {
 
@@ -191,12 +192,134 @@ public:
   }
 };
 
+class sectionorg : public Test {
+  // compile relative:
+  typedef size_t Index;
+  typedef CodeSectionBase::Offset Offset;
+  struct Eval {
+    virtual ~Eval() {}
+    virtual bool isPrim() const { return false; }
+    virtual Index getId() const = 0;
+    virtual void dump(BitStream& bs) const = 0;
+  };
+  struct EvalMempool {
+	typedef std::vector<Eval*> Mem;
+	static Mem mem;
+	static Eval* registor(Eval* e) { mem.push_back(e); return e; }
+	static void clear() { for (auto x: mem) delete x; }
+  };
+  struct Prim : public Eval {
+    Prim(Index i) : id(i) {}
+    Index id;
+    bool isPrim() const { return true; }
+    Index getId() const { return id; }
+    void dump(BitStream& bs) const {
+      bs.write((char*)&id, sizeof(Index));
+    }
+  };
+  struct Calc : public Eval {
+    Calc(Eval* s, Eval* l, Eval* r) : store(s), left(l), right(r) {}
+    Index getId() const { return store->getId(); }
+    void dump(BitStream& bs) const {
+      left->dump(bs);
+      right->dump(bs);
+      store->dump(bs);
+      uint32_t v = -1;
+      bs.write((char*)&v, sizeof(v));
+    }
+    Eval* store;
+    Eval* left;
+    Eval* right;
+  };
+  std::unordered_map<CodeSectionBase::Type, Offset> patchOffsetForSection;
+  struct Ids : public std::unordered_map<std::string, Index>, EvalMempool {
+	typedef std::unordered_map<std::string, Index> Super;
+    Prim* get(std::string const & name) {
+      auto r = Super::insert({name, Super::size()});
+      return (Prim*)registor(new Prim(r.first->second));
+    }
+  } idMapping;
+  struct Funcs : public std::unordered_map<Index, Eval*>, EvalMempool {
+	typedef std::unordered_map<Index, Eval*> Super;
+	Eval* get(Prim* s, Eval* l, Eval* r) {
+	  Calc* calc = new Calc(s, l, r);
+	  auto ret = Super::insert({s->id, calc});
+	  if (!ret.second) delete calc;
+	  else registor(calc);
+	  return ret.first->second;
+	}
+  } funcEvals;
+  void dumpSecsHeaders(BitStream& bs) {
+	for (size_t i = 0; i < CodeSectionBase::NumOfSecs; ++i) {
+	  CodeSectionBase::Header head {(CodeSectionBase::Type)i, 0};
+	  Offset t = bs.tellp(); t += CodeSectionBase::patchOffsetOfHeader;
+	  patchOffsetForSection[(CodeSectionBase::Type)i] = t;
+      bs.write((char*)&head, sizeof(head));
+	}
+  }
+  void dumpSecFuncs(BitStream& bs) {
+    Offset t = bs.tellp();
+    bs.write(patchOffsetForSection[CodeSectionBase::Funcs], (char*)&t, sizeof(Offset));
+    auto a = idMapping.get("a");
+    auto b = idMapping.get("b");
+    auto c = idMapping.get("c");
+    auto cf = funcEvals.get(c, a, b);
+
+    auto d = idMapping.get("d");
+    auto e = idMapping.get("e");
+    auto f = idMapping.get("f");
+    auto ff = funcEvals.get(f, d, e);
+
+    auto g = idMapping.get("g");
+    auto gf = funcEvals.get(g, cf, ff);idMapping.get("f");
+    gf->dump(bs);
+  }
+  void dumpSecIds(BitStream& bs) {
+	Offset t = bs.tellp();
+    bs.write(patchOffsetForSection[CodeSectionBase::Ids], (char*)&t, sizeof(Offset));
+
+    Word zero = 0;
+    for (auto id : idMapping) {
+      bs.write((char*)id.first.c_str(), id.first.size());
+      size_t ret = id.first.size() % sizeof(Word);
+      if (ret)
+        bs.write((char*)&zero, sizeof(Word) - ret);
+      bs.write((char*)&id.second, sizeof(id.second));
+    }
+  }
+
+  // runtime relative:
+  std::unordered_map<std::string, Offset>           rt_codeOffsetForFuncs;
+  std::unordered_map<std::string, Offset>           rt_codeOffsetForIds;
+
+public:
+  sectionorg() : Test(__FUNCTION__) {}
+  int run() {
+	const char* filename = "/tmp/testsectionorg.log";
+    BitStream dumper(filename, true);
+    dumpSecsHeaders(dumper);
+    dumpSecFuncs(dumper);
+    dumpSecIds(dumper);
+    dumper.close();
+
+    ByteCodeStream bcs(filename);
+	SectionOrganizer so(bcs);
+    logger()->warn("%d\n", so[CodeSectionBase::Ids]->header.offset);
+    logger()->warn("%d\n", so[CodeSectionBase::Funcs]->header.offset);
+    return 0;
+  }
+};
+
+sectionorg::EvalMempool::Mem
+sectionorg::EvalMempool::mem;
+
 Test*
 fsta_runtime_test() {
   TestGroup* group = new TestGroup("runtime");
   group->add(new sched_queue);
   group->add(new stack);
   group->add(new funcmanager);
+  group->add(new sectionorg);
   return group;
 }
 
